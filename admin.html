@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>NAVGATI 2026 | Admin Dashboard</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&family=Inter:wght@400;500&display=swap"
+        rel="stylesheet">
+
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+    <style>
+        .contact-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .wa-btn {
+            width: 44px;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            background: rgba(37, 211, 102, 0.18);
+            border: 1px solid rgba(37, 211, 102, 0.45);
+            backdrop-filter: blur(12px);
+            color: white;
+            font-size: 18px;
+            text-decoration: none;
+            transition: .25s ease;
+        }
+
+        .wa-btn:hover {
+            background: linear-gradient(135deg, #25D366, #128C7E);
+            box-shadow: 0 0 0 3px rgba(37, 211, 102, .35);
+        }
+
+        .scoreboard {
+            display: flex;
+            gap: 24px;
+            justify-content: center;
+            margin-bottom: 40px;
+            flex-wrap: wrap;
+        }
+
+        .score-card {
+            min-width: 220px;
+            padding: 22px 26px;
+            border-radius: 22px;
+            background: rgba(255, 255, 255, .08);
+            border: 1px solid var(--border);
+            backdrop-filter: blur(18px);
+            text-align: center;
+        }
+
+        .score-label {
+            font-size: 12px;
+            letter-spacing: .18em;
+            text-transform: uppercase;
+            color: var(--muted);
+            margin-bottom: 10px;
+        }
+
+        .score-value {
+            font-size: 40px;
+            font-weight: 700;
+            font-family: Poppins;
+            color: white;
+        }
+
+        :root {
+            --bg: #0b0f14;
+            --glass: rgba(255, 255, 255, .08);
+            --border: rgba(255, 255, 255, .18);
+            --text: #fff;
+            --muted: #bfc5d2;
+            --accent: #1fb6ff;
+        }
+
+        * {
+            box-sizing: border-box;
+            font-family: Inter, sans-serif
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background: black;
+            color: var(--text);
+            padding: 60px 24px;
+        }
+
+        h1 {
+            text-align: center;
+            font-family: Poppins;
+            letter-spacing: .18em;
+            margin-bottom: 42px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: auto;
+        }
+
+        /* CONTROLS */
+        .controls {
+            display: flex;
+            gap: 18px;
+            flex-wrap: wrap;
+            margin-bottom: 36px;
+        }
+
+        input {
+            padding: 14px 18px;
+            border-radius: 14px;
+            background: var(--glass);
+            border: 1px solid var(--border);
+            color: white;
+            outline: none;
+            min-width: 240px;
+        }
+
+        /* CUSTOM DROPDOWN */
+        .custom-select {
+            position: relative;
+            min-width: 260px;
+        }
+
+        .select-trigger {
+            padding: 14px 18px;
+            border-radius: 14px;
+            background: var(--glass);
+            border: 1px solid var(--border);
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .select-options {
+            position: absolute;
+            top: calc(100% + 10px);
+            width: 100%;
+            background: rgba(20, 24, 32, .85);
+            backdrop-filter: blur(18px);
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            overflow: hidden;
+            opacity: 0;
+            transform: translateY(-10px);
+            pointer-events: none;
+            transition: .25s ease;
+            z-index: 20;
+        }
+
+        .custom-select.open .select-options {
+            opacity: 1;
+            transform: translateY(0);
+            pointer-events: auto;
+        }
+
+        .option {
+            padding: 14px 18px;
+            cursor: pointer;
+        }
+
+        .option:hover {
+            background: rgba(255, 255, 255, .08);
+        }
+
+        /* CARDS */
+        .card {
+            background: var(--glass);
+            border: 1px solid var(--border);
+            border-radius: 22px;
+            padding: 26px;
+            margin-bottom: 24px;
+            backdrop-filter: blur(16px);
+        }
+
+        .top {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .event {
+            color: var(--accent);
+            font-weight: 600;
+            letter-spacing: .08em;
+        }
+
+        .meta {
+            font-size: 13px;
+            color: var(--muted);
+        }
+
+        .participants {
+            margin-top: 18px;
+            border-top: 1px dashed var(--border);
+            padding-top: 16px;
+        }
+
+        .participant {
+            background: rgba(255, 255, 255, .05);
+            padding: 12px;
+            border-radius: 12px;
+            margin-bottom: 12px;
+        }
+
+        .leader {
+            color: var(--accent);
+            font-weight: 600;
+        }
+
+        select {
+            padding: 14px 18px;
+            border-radius: 14px;
+            background: var(--glass);
+            border: 1px solid var(--border);
+            color: white;
+            outline: none;
+        }
+
+        .glass-filter {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            font-size: 12px;
+            color: var(--muted);
+        }
+
+        .segmented {
+            display: flex;
+            background: rgba(255, 255, 255, .06);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 4px;
+            backdrop-filter: blur(14px);
+        }
+
+        .segmented button {
+            flex: 1;
+            padding: 10px 14px;
+            border: none;
+            background: transparent;
+            color: white;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: .25s ease;
+        }
+
+        .segmented button.active {
+            background: rgba(31, 182, 255, .25);
+            box-shadow: inset 0 0 0 1px rgba(31, 182, 255, .45);
+        }
+
+        .status-toggle{
+  display:flex;
+  align-items:center;
+  gap:12px;               /* ✅ spacing between items */
+  background:rgba(255,255,255,.05);
+  padding:12px 16px;
+  border-radius:14px;
+  border:1px solid var(--border);
+  min-width:220px;
+}
+
+
+        .switch {
+            position: relative;
+            width: 46px;
+            height: 26px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            inset: 0;
+            background: rgba(255, 255, 255, .25);
+            border-radius: 20px;
+            transition: .3s;
+        }
+
+        .slider:before {
+            content: "";
+            position: absolute;
+            height: 20px;
+            width: 20px;
+            left: 3px;
+            top: 3px;
+            background: white;
+            border-radius: 50%;
+            transition: .3s;
+        }
+
+        .switch input:checked+.slider {
+            background: linear-gradient(135deg, #1fb6ff, #7b3fe4);
+        }
+
+        .switch input:checked+.slider:before {
+            transform: translateX(20px);
+        }
+
+        .participant-row {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 12px;
+        }
+
+        .call-btn {
+            width: 44px;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, .12);
+            border: 1px solid var(--border);
+            backdrop-filter: blur(12px);
+            color: white;
+            font-size: 18px;
+            text-decoration: none;
+            transition: .25s ease;
+        }
+
+        .call-btn:hover {
+            background: linear-gradient(135deg, #1fb6ff, #7b3fe4);
+            box-shadow: 0 0 0 3px rgba(31, 182, 255, .25);
+        }
+
+        .phone {
+            opacity: .8;
+            font-size: 13px;
+        }
+
+
+        .amount-tag {
+            padding: 2px 10px;
+            border-radius: 999px;
+            background: rgba(31, 182, 255, .18);
+            border: 1px solid rgba(31, 182, 255, .45);
+            color: white;
+            font-weight: 600;
+            font-size: 14px;
+            backdrop-filter: blur(10px);
+            display: flex;
+            align-items: center;
+            white-space: nowrap;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>NAVGATI 2026 – ADMIN DASHBOARD</h1>
+
+    <div class="scoreboard">
+        <div class="score-card">
+            <div class="score-label">Registrations</div>
+            <div class="score-value" id="regCount">0</div>
+        </div>
+
+        <div class="score-card">
+            <div class="score-label">Participants</div>
+            <div class="score-value" id="participantCount">0</div>
+        </div>
+    </div>
+
+
+    <div class="container">
+
+        <div class="controls">
+            <input id="searchInput" placeholder="Search college / leader name">
+
+            <div class="custom-select" id="eventSelect">
+                <div class="select-trigger" id="selectedEvent">
+                    All Events
+                    <span>▾</span>
+                </div>
+                <div class="select-options" id="eventOptions"></div>
+            </div>
+            <div class="glass-filter">
+                <span>Verification</span>
+                <div class="segmented" id="verifyFilter">
+                    <button data-value="" class="active">All</button>
+                    <button data-value="true">Verified</button>
+                    <button data-value="false">Pending</button>
+                </div>
+            </div>
+
+            <div class="glass-filter">
+                <span>Payment</span>
+                <div class="segmented" id="paymentFilter">
+                    <button data-value="" class="active">All</button>
+                    <button data-value="true">Paid</button>
+                    <button data-value="false">Unpaid</button>
+                </div>
+            </div>
+
+
+        </div>
+
+        <div id="list"></div>
+
+    </div>
+
+    <script>
+
+        
+
+
+
+        const EVENT_FEES = {
+            "MARITIME QUIZ": [
+                { min: 2, max: 2, perParticipant: 150 }
+            ],
+
+            "PAPER PRESENTATION": [
+                { min: 1, max: 3, perParticipant: 150 }
+            ],
+
+            "IPL AUCTION": [
+                { min: 2, max: 2, perParticipant: 150 }
+            ],
+
+            "SQUID GAME": [
+                { min: 1, max: 1, perParticipant: 100 }
+            ],
+
+            "CANVAS CLASH": [
+                { min: 1, max: 1, perParticipant: 150 }
+            ],
+
+            "BALLADS OF THE BLUE": [
+                { min: 1, max: 1, flat: 200 },
+                { min: 2, max: 4, flat: 500 },
+                { min: 5, max: Infinity, flat: 800 }
+            ],
+
+            "FIFA23": [
+                { min: 1, max: 1, perParticipant: 150 }
+            ],
+
+            "FASHION CHRONICLES": [
+                { min: 1, max: 1, flat: 250 },
+                { min: 2, max: 4, flat: 600 },
+                { min: 5, max: 11, flat: 900 }
+            ],
+
+            "RHYTHM AND WAVES": [
+                { min: 1, max: 1, flat: 200 },
+                { min: 2, max: 4, flat: 500 },
+                { min: 5, max: 16, flat: 800 }
+            ],
+
+            "CROWNED AT SEA": [
+                { min: 1, max: 1, perParticipant: 250 }
+            ],
+
+            "PITCH PERFECT": [
+                { min: 1, max: 5, perParticipant: 150 }
+            ],
+
+            "MIC CHECK": [
+                { min: 1, max: 1, perParticipant: 150 }
+            ],
+
+            "FRAMES FROM THE DEEP": [
+                { min: 1, max: 6, flat: 400 }
+            ],
+
+            "FOOSBALL IRL": [
+                { min: 6, max: 6, perParticipant: 100 }
+            ],
+
+            "SHUTTER SWIRL": [
+                { min: 1, max: 1, perParticipant: 150 }
+            ],
+
+            "ARM WRESTLING": [
+                { min: 1, max: 1, perParticipant: 250 }
+            ]
+        };
+
+
+        function calculatePayment(eventName, participantCount) {
+            const rules = EVENT_FEES[eventName];
+            if (!rules) return 0;
+
+            const rule = rules.find(r =>
+                participantCount >= r.min && participantCount <= r.max
+            );
+
+            if (!rule) return 0;
+
+            if (rule.perParticipant) {
+                return participantCount * rule.perParticipant;
+            }
+
+            if (rule.flat) {
+                return rule.flat;
+            }
+
+            return 0;
+        }
+
+
+
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBfcUk_ISZThkoAoFi9tTN0KirIj8cNvHk",
+            authDomain: "navgati-2026.firebaseapp.com",
+            projectId: "navgati-2026"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        const list = document.getElementById("list");
+        const searchInput = document.getElementById("searchInput");
+        const select = document.getElementById("eventSelect");
+        const selected = document.getElementById("selectedEvent");
+        const options = document.getElementById("eventOptions");
+        const verifyFilter = document.getElementById("verifyFilter");
+        const paymentFilter = document.getElementById("paymentFilter");
+        const regCountEl = document.getElementById("regCount");
+        const participantCountEl = document.getElementById("participantCount");
+
+
+
+        let allData = [];
+        let activeEvent = "";
+
+        db.collection("registrations").orderBy("timestamp", "desc")
+            .onSnapshot(snap => {
+                allData = snap.docs.map(d => ({
+                    id: d.id,
+                    ...d.data()
+                }));
+
+
+
+                buildEvents();
+                render();
+            });
+
+
+        function buildEvents() {
+            const events = [...new Set(allData.map(d => d.event))];
+
+            options.innerHTML = `<div class="option" data-value="">All Events</div>`;
+
+            events.forEach(e => {
+                options.innerHTML += `
+      <div class="option" data-value="${e}">${e}</div>
+    `;
+            });
+
+            options.querySelectorAll(".option").forEach(opt => {
+                opt.onclick = () => {
+                    activeEvent = opt.dataset.value;   // ✅ FIX
+                    selected.childNodes[0].nodeValue = opt.textContent + " ";
+                    select.classList.remove("open");
+                    render();
+                };
+            });
+        }
+
+
+        selected.onclick = e => {
+            e.stopPropagation();
+            select.classList.toggle("open");
+        };
+        document.addEventListener("click", () => select.classList.remove("open"));
+
+
+
+        function getFilteredData() {
+            const q = searchInput.value.toUpperCase();
+
+            return allData.filter(d => {
+                const leader = d.participants.find(p => p.leader)?.name || "";
+
+                const verified = d.verified ?? false;
+                const paid = d.paid ?? false;
+
+                return (
+                    (!activeEvent || d.event === activeEvent) &&
+                    (!verifyValue || String(verified) === verifyValue) &&
+                    (!paymentValue || String(paid) === paymentValue) &&
+                    (
+                        d.collegeName.includes(q) ||
+                        d.collegeCity.includes(q) ||
+                        leader.toUpperCase().includes(q)
+                    )
+                );
+            });
+        }
+
+
+
+
+        function render() {
+            list.innerHTML = "";
+
+            const filteredData = getFilteredData();
+
+            // 🔥 update scoreboard BASED ON SCREEN DATA
+            updateScoreboard(filteredData);
+
+            filteredData.forEach(d => {
+                const card = document.createElement("div");
+                card.className = "card";
+
+                card.innerHTML = `
+      <div class="top">
+        <div>
+          <strong>${d.collegeName}</strong>
+          <div class="meta">${d.collegeCity}</div>
+        </div>
+        <div class="event">${d.event}</div>
+      </div>
+
+      <div class="meta">
+        ${new Date(d.timestamp.seconds * 1000).toLocaleString()}
+      </div>
+
+      <div style="display:flex;gap:16px;margin-top:16px;flex-wrap:wrap;">
+        <div class="status-toggle">
+          <span>Verified</span>
+          <label class="switch">
+            <input type="checkbox" ${d.verified ? "checked" : ""}
+              onchange="updateStatus('${d.id}','verified',this.checked)">
+            <span class="slider"></span>
+          </label>
+        </div>
+
+       ${(() => {
+                        const count = d.participants.length;
+                        const amount = calculatePayment(d.event, count);
+                        return `
+    <div class="status-toggle">
+        
+      <span>Payment</span>
+      <span class="amount-tag">₹ ${amount}</span>
+      <label class="switch">
+        <input type="checkbox" ${d.paid ? "checked" : ""}
+          onchange="updateStatus('${d.id}','paid',this.checked)">
+        <span class="slider"></span>
+        
+      </label>
+    </div>
+  `;
+                    })()}
+
+      </div>
+
+      <div class="participants">
+        ${d.participants.map(p => `
+
+         <div class="participant-row">
+
+  <div class="contact-actions">
+    <a href="tel:${p.phone}" class="call-btn" title="Call ${p.name}">
+      📞
+    </a>
+
+    <a href="https://wa.me/91${p.phone}" 
+       target="_blank" 
+       class="wa-btn"
+       title="WhatsApp ${p.name}">
+      💬
+    </a>
+  </div>
+
+  <div class="participant">
+
+
+
+              <div class="${p.leader ? "leader" : ""}">
+                ${p.leader ? "Team Leader" : "Participant"}
+              </div>
+              ${p.name}<br>
+              <span class="phone">${p.phone}</span>
+            </div>
+          </div>
+        `).join("")}
+      </div>
+    `;
+
+                list.appendChild(card);
+            });
+        }
+
+
+
+        function updateStatus(docId, field, value) {
+            db.collection("registrations").doc(docId).update({
+                [field]: value
+            });
+        }
+
+        function updateScoreboard(data) {
+            // Registrations count
+            const regCountEl = document.getElementById("regCount");
+            const participantCountEl = document.getElementById("participantCount");
+
+            if (!regCountEl || !participantCountEl) return;
+
+            regCountEl.textContent = data.length;
+
+            let totalParticipants = 0;
+            data.forEach(d => {
+                totalParticipants += d.participants?.length || 0;
+            });
+
+            participantCountEl.textContent = totalParticipants;
+        }
+
+
+        searchInput.addEventListener("input", render);
+
+
+        verifyFilter.addEventListener("change", render);
+        paymentFilter.addEventListener("change", render);
+
+
+
+        let verifyValue = "";
+        let paymentValue = "";
+
+        document.querySelectorAll("#verifyFilter button").forEach(btn => {
+            btn.onclick = () => {
+                document.querySelectorAll("#verifyFilter button").forEach(b => b.classList.remove("active"));
+                btn.classList.add("active");
+                verifyValue = btn.dataset.value;
+                render();
+            };
+        });
+
+        document.querySelectorAll("#paymentFilter button").forEach(btn => {
+            btn.onclick = () => {
+                document.querySelectorAll("#paymentFilter button").forEach(b => b.classList.remove("active"));
+                btn.classList.add("active");
+                paymentValue = btn.dataset.value;
+                render();
+            };
+        });
+
+
+
+
+
+    </script>
+
+</body>
+
+</html>
